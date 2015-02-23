@@ -1,0 +1,376 @@
+% pylab inline
+import pylab as pl
+from sympy import *
+import pandas as pd
+
+#####################
+
+
+# import .jpeg photo, convert to an array of color values, save as .png
+from scipy import misc
+wolves=misc.imread('exafs_data//wolves_quote.jpg')
+pl.imshow(wolves)
+misc.imsave('exafs_data\wolves2.png', wolves)
+
+######################
+
+for i in range(3):
+    im = np.random.random_integers(0, 255, 10000).reshape((100, 100))
+    misc.imsave('exafs_data/random_%02d.png' % i, im)
+from glob import glob
+filelist = glob('exafs_data/random*.png')
+filelist.sort()
+
+#######################
+
+rd00=misc.imread('exafs_data//random_00.png')
+pl.imshow(rd00)
+
+#######################
+
+
+# Image Manipulation
+
+from scipy import misc
+wolves=misc.imread('exafs_data//wolves_quote.jpg')
+
+print '/min', wolves.min(), '/max', wolves.max(), '/mean', mean(wolves)
+
+pl.figure(figsize=(14, 5))
+
+lx, ly, lt =wolves.shape
+crop_wolves = wolves[lx / 4: - lx / 4, ly / 4: - ly / 4]
+flip_ud_wolves = np.flipud(wolves)
+
+pl.subplot(141)
+pl.imshow(wolves, cmap=plt.cm.gray)
+pl.axis('off')
+
+pl.subplot(142)
+pl.imshow(crop_wolves, cmap=plt.cm.gray)
+plt.axis('off')
+
+pl.subplot(143)
+pl.imshow(wolves[160:220, 160:220], cmap=plt.cm.gray)
+pl.axis('off')
+
+plt.subplot(144)
+plt.imshow(flip_ud_wolves, cmap=plt.cm.gray)
+plt.axis('off')
+
+pl.subplots_adjust(wspace=0.02, hspace=0.02, top=.6, bottom=0, left=0, right=.6)
+pl.show()
+
+######################
+
+# Applying filters to the image
+
+from scipy import ndimage
+wolves=misc.imread('exafs_data//wolves_quote.jpg')
+
+blurred = ndimage.gaussian_filter(wolves, sigma=3)
+very_blurred = ndimage.gaussian_filter(wolves, sigma=8)
+local_mean = ndimage.uniform_filter(wolves, size=11)
+
+pl.figure(figsize=(9, 3))
+pl.subplot(131)
+pl.imshow(blurred)
+pl.axis('off')
+pl.subplot(132)
+pl.imshow(very_blurred, cmap=plt.cm.gray)
+pl.axis('off')
+pl.subplot(133)
+pl.imshow(local_mean, cmap=plt.cm.gray)
+pl.axis('off')
+
+pl.subplots_adjust(hspace=0.,top=0.99, bottom=0.01,
+                    left=0.01, right=0.99)
+
+pl.show()
+
+#####################
+
+#Denoising
+
+from scipy import ndimage
+from scipy import misc
+wolves=misc.imread('exafs_data//wolves_quote.jpg')
+
+blurred_w = ndimage.gaussian_filter(wolves, 3)
+
+filter_blurred_w = ndimage.gaussian_filter(blurred_w, 1)
+
+alpha = 30
+sharpened = blurred_w + alpha * (blurred_w - filter_blurred_w)
+
+pl.figure(figsize=(12, 4))
+
+pl.subplot(131)
+pl.imshow(wolves, cmap=plt.cm.gray)
+pl.axis('off')
+pl.title('Noisy', fontsize=20)
+pl.subplot(132)
+pl.imshow(blurred_w, cmap=plt.cm.gray)
+pl.axis('off')
+pl.title('Gaussian filter', fontsize=20)
+pl.subplot(133)
+pl.imshow(sharpened, cmap=plt.cm.gray)
+pl.axis('off')
+pl.title('Median filter', fontsize=20)
+
+pl.show()
+
+#######################
+
+# image denosing
+from scipy import ndimage
+from scipy import misc
+
+l = misc.lena()
+l = l[230:290, 220:320]
+
+noisy = l + .6*l.std()*np.random.random(l.shape)
+
+gauss_denoised = ndimage.gaussian_filter(noisy, 2)
+med_denoised = ndimage.median_filter(noisy, 3)
+
+
+pl.figure(figsize=(12,2.8))
+
+pl.subplot(131)
+pl.imshow(noisy, cmap=plt.cm.gray, vmin=40, vmax=220)
+pl.axis('off')
+pl.title('noisy', fontsize=20)
+pl.subplot(132)
+pl.imshow(gauss_denoised, cmap=plt.cm.gray, vmin=40, vmax=220)
+pl.axis('off')
+pl.title('Gaussian filter', fontsize=20)
+pl.subplot(133)
+pl.imshow(med_denoised, cmap=plt.cm.gray, vmin=40, vmax=220)
+pl.axis('off')
+pl.title('Median filter', fontsize=20)
+
+pl.subplots_adjust(wspace=0.02, hspace=0.02, top=0.9, bottom=0, left=0,
+                    right=1)
+pl.show()
+
+########################
+
+
+from scipy import ndimage
+
+im = np.zeros((20, 20))
+im[1:-9, 1:-9] = 1
+im[7:-2, 7:-2] = 1
+im = ndimage.distance_transform_bf(im)
+im_noise = im + 0.3*np.random.randn(*im.shape)
+
+im_med = ndimage.median_filter(im_noise, 3)
+
+plt.figure(figsize=(16, 5))
+
+pl.subplot(141)
+pl.imshow(im, interpolation='nearest')
+pl.axis('off')
+pl.title('Original image', fontsize=20)
+
+pl.subplot(142)
+pl.imshow(im_noise, interpolation='nearest', vmin=0, vmax=5)
+pl.axis('off')
+pl.title('Noisy image', fontsize=20)
+
+pl.subplot(143)
+pl.imshow(im_med, interpolation='nearest', vmin=0, vmax=5)
+pl.axis('off')
+pl.title('Median filter', fontsize=20)
+
+pl.subplot(144)
+pl.imshow(np.abs(im - im_med), cmap=plt.cm.hot, interpolation='nearest')
+pl.axis('off')
+pl.title('Error', fontsize=20)
+
+
+pl.subplots_adjust(wspace=0.02, hspace=0.02, top=0.9, bottom=0, left=0, right=1)
+
+####################
+
+from scipy import ndimage
+
+N=40
+square = np.zeros((N, N))
+square[10:-10, 10:-10] = 1
+np.random.seed(2)
+x, y = (N*np.random.random((2, 40))).astype(np.int)
+square[x, y] = 1
+
+open_square = ndimage.binary_opening(square)
+
+eroded_square = ndimage.binary_erosion(square)
+reconstruction = ndimage.binary_propagation(eroded_square, mask=square)
+
+pl.figure(figsize=(9.5, 3))
+pl.subplot(131)
+pl.imshow(square, cmap=plt.cm.gray, interpolation='nearest')
+pl.axis('off')
+pl.subplot(132)
+pl.imshow(open_square, cmap=plt.cm.gray, interpolation='nearest')
+pl.axis('off')
+pl.subplot(133)
+pl.imshow(reconstruction, cmap=plt.cm.gray, interpolation='nearest')
+pl.axis('off')
+
+pl.subplots_adjust(wspace=0, hspace=0.02, top=0.99, bottom=0.01, left=0.01, right=0.99)
+pl.show()
+
+#######################
+
+from scipy import ndimage
+
+im = np.zeros((256, 256))
+im[64:-64, 64:-64] = 1
+
+im = ndimage.rotate(im, 30, mode='constant')
+im = ndimage.gaussian_filter(im, 6)
+
+sx = ndimage.sobel(im, axis=0, mode='constant')
+sy = ndimage.sobel(im, axis=1, mode='constant')
+sob = np.hypot(sx, sy)
+
+pl.figure(figsize=(16, 5))
+pl.subplot(141)
+pl.imshow(im, cmap=plt.cm.gray)
+pl.axis('off')
+pl.title('square', fontsize=20)
+pl.subplot(142)
+pl.imshow(sx)
+pl.axis('off')
+pl.title('Sobel (x direction)', fontsize=20)
+pl.subplot(143)
+pl.imshow(sob)
+pl.axis('off')
+pl.title('Sobel filter', fontsize=20)
+
+im += 0.07*np.random.random(im.shape)
+
+sx = ndimage.sobel(im, axis=0, mode='constant')
+sy = ndimage.sobel(im, axis=1, mode='constant')
+sob = np.hypot(sx, sy)
+
+pl.subplot(144)
+pl.imshow(sob)
+pl.axis('off')
+pl.title('Sobel for noisy image', fontsize=20)
+
+
+
+pl.subplots_adjust(wspace=0.02, hspace=0.02, top=1, bottom=0, left=0, right=0.9)
+
+pl.show()
+
+########################
+
+from scipy import ndimage
+
+np.random.seed(7)
+n = 10
+l = 256
+im = np.zeros((l, l))
+points = l*np.random.random((2, n**2))
+im[(points[0]).astype(np.int), (points[1]).astype(np.int)] = 1
+im = ndimage.gaussian_filter(im, sigma=l/(4.*n))
+
+mask = (im > im.mean()).astype(np.float)
+
+mask += 0.1 * im
+
+img = mask + 0.2*np.random.randn(*mask.shape)
+
+hist, bin_edges = np.histogram(img, bins=60)
+bin_centers = 0.5*(bin_edges[:-1] + bin_edges[1:])
+
+binary_img = img > 0.5
+
+plt.figure(figsize=(11,4))
+
+pl.subplot(131)
+pl.imshow(img)
+pl.axis('off')
+pl.subplot(132)
+plt.plot(bin_centers, hist, lw=2)
+pl.axvline(0.5, color='r', ls='--', lw=2)
+pl.text(0.57, 0.8, 'histogram', fontsize=20, transform = plt.gca().transAxes)
+pl.yticks([])
+pl.subplot(133)
+pl.imshow(binary_img, cmap=plt.cm.gray, interpolation='nearest')
+pl.axis('off')
+
+pl.subplots_adjust(wspace=0.02, hspace=0.3, top=1, bottom=0.1, left=0, right=1)
+pl.show()
+
+##########################
+
+from scipy import ndimage
+from sklearn.mixture import GMM
+
+np.random.seed(7)
+n = 10
+l = 256
+im = np.zeros((l, l))
+points = l*np.random.random((2, n**2))
+im[(points[0]).astype(np.int), (points[1]).astype(np.int)] = 1
+im = ndimage.gaussian_filter(im, sigma=l/(5.*n))
+
+mask = (im > im.mean()).astype(np.float)
+
+
+img = mask + 0.3*np.random.randn(*mask.shape)
+
+binary_img = img > 0.5
+
+# Remove small white regions
+open_img = ndimage.binary_opening(binary_img)
+# Remove small black hole
+close_img = ndimage.binary_closing(open_img)
+
+plt.figure(figsize=(12, 3))
+
+
+
+pl.subplot(141)
+pl.imshow(binary_img[:l, :l], cmap=plt.cm.gray)
+pl.axis('off')
+pl.subplot(142)
+pl.imshow(open_img[:l, :l], cmap=plt.cm.gray)
+pl.axis('off')
+pl.subplot(143)
+pl.imshow(close_img[:l, :l], cmap=plt.cm.gray)
+pl.axis('off')
+pl.subplot(144)
+pl.imshow(mask[:l, :l], cmap=plt.cm.gray)
+pl.contour(close_img[:l, :l], [0.5], linewidths=2, colors='r')
+pl.axis('off')
+
+pl.subplots_adjust(wspace=0.02, hspace=0.3, top=1, bottom=0.1, left=0, right=1)
+
+##########################
+
+def f(x, y):
+    return (1 - 6*x + x ** 4 -y*y-x*y ** 3 ) * np.exp(-x ** 2 - y ** 2)
+
+n = 10
+x = np.linspace(-3, 3, 3.5 * n)
+y = np.linspace(-3, 3, 3.0 * n)
+X, Y = np.meshgrid(x, y)
+Z=f(X, Y)
+
+
+pl.axes([0.025, 0.025, 0.95, 0.95])
+pl.imshow(Z, interpolation='nearest', cmap='bone', origin='lower')
+pl.colorbar(shrink=.92)
+
+pl.xticks(())
+pl.yticks(())
+pl.show()
+
+###########################
+
